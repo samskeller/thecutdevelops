@@ -107,12 +107,11 @@ class NewPostHandler(Handler):
 			error = "Gotta have both a subject and some content!"
 			self.render_front(subject, content, error)
 
-def OldPostHandler(Handler):
+class OldPostHandler(Handler):
 	def get(self, post_id):
-		self.response.out.write("HEY SAM: POST ID: ")
-		#post = db.Model.get_by_id(post_id, None)
+		post = Post.get_by_id(int(post_id))
 		
-		#self.response.out.write(post.content)
+		self.response.out.write(post.content)
 
 def convertString(input=""):	
 	output = ""
