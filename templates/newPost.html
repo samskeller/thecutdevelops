@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title>Bloggin' It</title>
+        <link rel="stylesheet" type="text/css" href="/styles/blog.css" />
+    </head>
+    
+    <body>
+      <form method="post">
+        <h2>New Post</h2>
+        <label>
+        	<div>subject</div>
+        	<input type="text" name="subject" value="{{subject}}">
+        </label>
+                	
+        <label>
+        	<div>post</div>
+        	<textarea name="content">{{content}}</textarea>
+        </label>
+        
+        <div class="error">{{error}}</div>
+        
+        <input type="submit">
+        
+        <hr>
+      </form>
+    </body>
+</html>
