@@ -109,9 +109,10 @@ class NewPostHandler(Handler):
 
 def OldPostHandler(Handler):
 	def get(self, post_id):
-		post = Post.get_by_id(post_id, None)
+		self.response.out.write("HEY SAM: POST ID: ")
+		#post = db.Model.get_by_id(post_id, None)
 		
-		self.resonse.out.write(post.content)
+		#self.response.out.write(post.content)
 
 def convertString(input=""):	
 	output = ""
@@ -212,4 +213,4 @@ app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
     		('/unit2/signup', SignupHandler), ('/unit3/ascii', AsciiHandler), \
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
-    		('blog/(\d+)', OldPostHandler)], debug=True)
+    		(r'/blog/(\d+)', OldPostHandler)], debug=True)
