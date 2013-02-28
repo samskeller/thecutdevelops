@@ -38,6 +38,9 @@ passwordPattern = "^.{3,20}$"
 emailPattern = "^[\S]+@[\S]+\.[\S]+$" 
 
 class Handler(webapp2.RequestHandler):
+	"""
+	Main Handler to inherit from
+	"""
 	def write(self, *args, **kwargs):
 		self.response.out.write(*args, **kwargs)
 	
