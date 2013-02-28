@@ -20,6 +20,7 @@ import re
 import os
 import sys
 import jinja2
+from datetime import date
 
 from google.appengine.ext import db
 
@@ -55,8 +56,7 @@ class Art(db.Model):
 class Post(db.Model):
 	subject = db.StringProperty(required = True)
 	content = db.TextProperty(required = True)
-	#id = db.IntegerProperty(required = True)
-	created = db.DateTimeProperty(auto_now_add = True)
+	created = db.StringProperty(required = True)
 	
 class AsciiHandler(Handler):
 
@@ -83,10 +83,11 @@ class AsciiHandler(Handler):
 
 class BlogHandler(Handler):
 	def get(self):
-		posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC ")
+		
+		posts = Post.all()
 		
 		self.render("blog.html", posts=posts)
-	
+		
 class NewPostHandler(Handler):
 	def render_front(self, subject="", content="", error=""):
 		self.render("newPost.html", subject=subject, content=content, error=error)
@@ -99,7 +100,8 @@ class NewPostHandler(Handler):
 		content = self.request.get("content")
 		
 		if subject and content:
-			p = Post(subject=subject, content=content)
+			created = str(date.today())
+			p = Post(subject=subject, content=content, created=created)
 			p.put()
 						
 			self.redirect("/blog/%d" % p.key().id())
