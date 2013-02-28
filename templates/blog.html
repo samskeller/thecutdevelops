@@ -27,13 +27,22 @@
 		}
 
 		hr {
-    		margin:20px auto;
+    		margin:30px auto;
+    		border: 3px dashed #000;
 		}
 
-      
+      	
+      	.title {
+      		display:block;
+      		color:black;
+      		font-weight:bold;
+      		font-size:35px;
+      		text-align:center;
+      		text-decoration:none;
+      	}
 		.post-subject {
     		font-weight:bold;
-    		font-size:20px;
+    		font-size:30px;
 		}
       
 		.post-content {
@@ -50,6 +59,15 @@
 		input[type=submit] {
 			font-size: 24px;
 		}
+		
+		.newpost {
+			float:right;
+			display:block;
+			font-weight:bold;
+			text-decoration:none;
+			color:red;
+			font-size:20px;
+		}
           
 		.post + .post {
     		margin-top: 20px;
@@ -59,7 +77,9 @@
     
     <body>
       <form method="post">
-        <h2>My Blog</h2>
+        <a href="/blog" class="title">Sam's Blog</a>
+        <span style="float:right"><a class="newpost" href="/blog/newpost">New Post</a></span>
+        <br>
         <hr>
         {% for post in posts %}
         	<div class="post">

@@ -1,15 +1,45 @@
 <html>
     <head>
         <title>Bloggin' It</title>
-        <link rel="stylesheet" type="text/css" href="/styles/blog.css" />
+        <style>
+        .title {
+      		display:block;
+      		color:black;
+      		font-weight:bold;
+      		font-size:35px;
+      		text-align:center;
+      		text-decoration:none;
+      	}
+      	
+      	body {
+			font-family:sans-serif;
+    		width:800px;
+    		margin:0 auto;
+    		padding:10px;
+		}
+		
+		.subject {
+			width:200px;
+			height:30px;
+		}
+		textarea {
+			width:600px;
+			height:300px;
+		}
+		
+		.button {
+			font-size: 24px;
+		}
+      	</style>
     </head>
     
     <body>
       <form method="post">
+      	<a href="/blog" class="title">Sam's Blog</a>
         <h2>New Post</h2>
         <label>
         	<div>subject</div>
-        	<input type="text" name="subject" value="{{subject}}">
+        	<input class="subject" type="text" name="subject" value="{{subject}}">
         </label>
                 	
         <label>
@@ -19,7 +49,7 @@
         
         <div class="error">{{error}}</div>
         
-        <input type="submit">
+        <input class="button" type="submit">
         
         <hr>
       </form>

@@ -113,8 +113,8 @@ class OldPostHandler(Handler):
 	def get(self, post_id):
 		post = Post.get_by_id(int(post_id))
 		
-		self.response.out.write(post.content)
-
+		self.render("oldPost.html", post=post)
+		
 def convertString(input=""):	
 	output = ""
 	for i in range(len(input)):
