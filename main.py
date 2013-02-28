@@ -57,6 +57,9 @@ class Art(db.Model):
 	created = db.DateTimeProperty(auto_now_add = True)
 
 class Post(db.Model):
+	"""
+	Blog Post db entry
+	"""
 	subject = db.StringProperty(required = True)
 	content = db.TextProperty(required = True)
 	created = db.StringProperty(required = True)
