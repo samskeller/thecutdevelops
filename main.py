@@ -63,6 +63,7 @@ class Post(db.Model):
 	subject = db.StringProperty(required = True)
 	content = db.TextProperty(required = True)
 	created = db.StringProperty(required = True)
+	createdExact = db.DateTimeProperty(auto_now_add = True)
 	
 class AsciiHandler(Handler):
 
@@ -90,7 +91,7 @@ class AsciiHandler(Handler):
 class BlogHandler(Handler):
 	def get(self):
 		
-		posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC")
+		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC")
 		
 		self.render("blog.html", posts=posts)
 		
