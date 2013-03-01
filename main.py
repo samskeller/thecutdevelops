@@ -90,7 +90,7 @@ class AsciiHandler(Handler):
 class BlogHandler(Handler):
 	def get(self):
 		
-		posts = Post.all()
+		posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC")
 		
 		self.render("blog.html", posts=posts)
 		

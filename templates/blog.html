@@ -43,6 +43,8 @@
 		.post-subject {
     		font-weight:bold;
     		font-size:30px;
+    		color:black;
+    		text-decoration:none;
 		}
       
 		.post-content {
@@ -83,7 +85,7 @@
         <hr>
         {% for post in posts %}
         	<div class="post">
-        		<div class="post-subject">{{post.subject}}</div>
+        		<a class="post-subject" href="/blog/{{post.key().id()}}">{{post.subject}}</a>
         		<span style="float:right">{{post.created}}</span>
         		<pre class="post-content">{{post.content}}</pre>
         	</div>
