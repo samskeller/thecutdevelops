@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <title>Bloggin' It</title>
+        <style>
+        .title {
+      		display:block;
+      		color:black;
+      		font-weight:bold;
+      		font-size:35px;
+      		text-align:center;
+      		text-decoration:none;
+      	}
+      	
+      	.post-subject {
+    		font-weight:bold;
+    		font-size:30px;
+		}
+      
+		.post-content {
+    		margin:0px;
+    		font-size:17px;
+		}
+		hr {
+    		margin:20px auto;
+		}
+		body {
+			font-family:sans-serif;
+    		width:800px;
+    		margin:0 auto;
+    		padding:10px;
+		}
+		
+		pre {
+			white-space: -moz-pre-wrap;
+			word-wrap: break-word;
+			white-space: pre-wrap;
+			overflow-x: auto;
+		}
+      	</style>
+    </head>
+    
+    <body>
+      <form method="post">
+      	<a href="/blog" class="title">Sam's Blog</a>
+      	<hr>
+      	
+	    <div class="post">
+          <span class="post-subject">{{post.subject}}</span>
+          <span style="float:right">{{post.created}}</span>
+          <pre class="post-content">{{post.content}}</pre>
+        </div>
+        <hr>
+      </form>
+    </body>
+</html>
