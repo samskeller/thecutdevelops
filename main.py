@@ -91,7 +91,7 @@ class AsciiHandler(Handler):
 class BlogHandler(Handler):
 	def get(self):
 		
-		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC")
+		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10")
 		
 		self.render("blog.html", posts=posts)
 		
