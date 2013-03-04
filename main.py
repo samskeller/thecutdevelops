@@ -120,10 +120,8 @@ class BlogOldPageHandler(Handler):
 	def get(self, pageNo):
 		offset = (int(pageNo)-1) * 10
 		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10 OFFSET %d" % offset)
-		if posts:
-			self.render("blog.html", posts=posts, nextPage=int(pageNo)+1)
-		else:
-			print "none for you"
+		
+		self.render("blog.html", posts=posts, nextPage=int(pageNo)+1)
 
 class OldPostHandler(Handler):
 	def get(self, post_id):
