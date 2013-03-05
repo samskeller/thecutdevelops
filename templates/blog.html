@@ -20,7 +20,9 @@
         	<hr>
         {% endfor %}
         
-        <a href=/blog/page{{nextPage}} class="title">next page PLEASE</a>
+        {% if nextPage != "": %}
+        	<a href=/blog/page{{nextPage}} class="title">next page PLEASE</a>
+        {% endif %}
       </form>
     </body>
 </html>

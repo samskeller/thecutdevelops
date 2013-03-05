@@ -93,7 +93,10 @@ class BlogHandler(Handler):
 		
 		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10")
 		
-		self.render("blog.html", posts=posts, nextPage=2)
+		if posts.count() > 10:
+			self.render("blog.html", posts=posts, nextPage=2)
+		else:
+			self.render("blog.html", posts=posts, nextPage="")
 		
 class NewPostHandler(Handler):
 	def render_front(self, subject="", content="", error=""):
@@ -121,8 +124,13 @@ class BlogOldPageHandler(Handler):
 		offset = (int(pageNo)-1) * 10
 		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10 OFFSET %d" % offset)
 		
-		self.render("blog.html", posts=posts, nextPage=int(pageNo)+1)
-
+		postsLeft = (int(pageNo) - 1) * 10
+		postsLeft = posts.count() - postsLeft
+		if postsLeft > 10:
+			self.render("blog.html", posts=posts, nextPage=int(pageNo)+1)
+		else:
+			self.render("blog.html", posts=posts, nextPage="")
+	
 class OldPostHandler(Handler):
 	def get(self, post_id):
 		post_id = int(post_id)
