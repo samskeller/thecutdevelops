@@ -103,9 +103,9 @@ class BlogHandler(Handler):
 		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10")
 		
 		if posts.count() > 10:
-			self.render("blog.html", posts=posts, nextPage=2)
+			self.render("blog.html", posts=posts, nextPage=2, backPage=0)
 		else:
-			self.render("blog.html", posts=posts, nextPage="")
+			self.render("blog.html", posts=posts, nextPage="", backPage=0)
 		
 class NewPostHandler(Handler):
 	"""
@@ -146,10 +146,13 @@ class BlogOldPageHandler(Handler):
 		
 		postsLeft = (int(pageNo) - 1) * 10
 		postsLeft = posts.count() - postsLeft
+		
+		backPage = int(pageNo) - 1
+		
 		if postsLeft > 10:
-			self.render("blog.html", posts=posts, nextPage=int(pageNo)+1)
+			self.render("blog.html", posts=posts, nextPage=int(pageNo)+1, backPage=backPage)
 		else:
-			self.render("blog.html", posts=posts, nextPage="")
+			self.render("blog.html", posts=posts, nextPage="", backPage=backPage)
 	
 class OldPostHandler(Handler):
 	"""
@@ -194,12 +197,12 @@ class Rot13Handler(Handler):
 	"""
 	Our handler for the ROT13 algorithm page
 	"""
-    def get(self):
-       	self.render("rot13.html")
-    def post(self):
-       	input = self.request.get('text')
-        output = convertString(input)
-        self.render("rot13.html", output=output)
+	def get(self):
+		self.render("rot13.html")
+	def post(self):
+		input = self.request.get('text')
+		output = convertString(input)
+		self.render("rot13.html", output=output)
 
 class SignupHandler(Handler):
 	"""

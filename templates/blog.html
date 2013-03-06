@@ -20,6 +20,10 @@
         	<hr>
         {% endfor %}
         
+        {% if backPage > 0: %}
+        	<a href=/blog/page{{backPage}} class="title">just go BACK</a>
+        {% endif %}
+        
         {% if nextPage != "": %}
         	<a href=/blog/page{{nextPage}} class="title">next page PLEASE</a>
         {% endif %}
