@@ -24,15 +24,16 @@ from datetime import date
 
 from google.appengine.ext import db
 
+# Set up our templates
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
 								autoescape = True)
 
+# Alphabets for our ROT13 algorithm
 alphabetLower = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 alphabetUpper = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'] 
 
-POST_NUMBER = 1
-
+# RegEx patterns for usernames, passwords, and emails
 usernamePattern = "^[a-zA-Z0-9_-]{3,20}$"
 passwordPattern = "^.{3,20}$"
 emailPattern = "^[\S]+@[\S]+\.[\S]+$" 
@@ -66,7 +67,11 @@ class Post(db.Model):
 	createdExact = db.DateTimeProperty(auto_now_add = True)
 	
 class AsciiHandler(Handler):
-
+	"""
+	AsciiHandler is for handling our main ascii art page. We display old art
+	on the page as well as giving the user a form for making new art.
+	If the user submits invalid input, we spit out an error.
+	"""
 	def render_front(self, title="", art="", error=""):
 		arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC ")
 	
@@ -89,6 +94,10 @@ class AsciiHandler(Handler):
 			self.render_front(title, art, error)
 
 class BlogHandler(Handler):
+	"""
+	BlogHandler is for our front blog page. It displays the newest results as well
+	as offering a link to make a new post.
+	"""
 	def get(self):
 		
 		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10")
@@ -99,6 +108,12 @@ class BlogHandler(Handler):
 			self.render("blog.html", posts=posts, nextPage="")
 		
 class NewPostHandler(Handler):
+	"""
+	NewPostHandler handlers the form for adding a new post to our blog.
+	The user must submit a valid subject and valid content for it to be stored
+	in our database and displayed on the front blog page. Successful submission
+	redirects to a permalink.
+	"""
 	def render_front(self, subject="", content="", error=""):
 		self.render("newPost.html", subject=subject, content=content, error=error)
 		
@@ -120,6 +135,11 @@ class NewPostHandler(Handler):
 			self.render_front(subject, content, error)
 
 class BlogOldPageHandler(Handler):
+	"""
+	BlogOldPageHandler is for the many backlogged pages of the blog. If there are 
+	more results to display after the current page, we put a Next Page link at the bottom.
+	The pageNo argument, from the URL, determines where in the database to start
+	"""
 	def get(self, pageNo):
 		offset = (int(pageNo)-1) * 10
 		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10 OFFSET %d" % offset)
@@ -132,13 +152,20 @@ class BlogOldPageHandler(Handler):
 			self.render("blog.html", posts=posts, nextPage="")
 	
 class OldPostHandler(Handler):
+	"""
+	OldPostHandler is our handler for the permalink pages that exist for each old blog post.
+	"""
 	def get(self, post_id):
 		post_id = int(post_id)
 		post = Post.get_by_id(int(post_id))
 		
 		self.render("oldPost.html", post=post)
 		
-def convertString(input=""):	
+def convertString(input=""):
+	"""
+	convertString is a handy function for encrypting any string with the easy to 
+	crack ROT13 algorithm.
+	"""
 	output = ""
 	for i in range(len(input)):
 		char = input[i]
@@ -156,20 +183,31 @@ def convertString(input=""):
 
 
 class MainHandler(Handler):
+	"""
+	Our home page handler!
+	"""
 	def get(self):
 		self.render("mainPage.html")
 
 
 class Rot13Handler(Handler):
-    	def get(self):
-        	self.render("rot13.html")
-
-    	def post(self):
-        	input = self.request.get('text')
-        	output = convertString(input)
-        	self.render("rot13.html", output=output)
+	"""
+	Our handler for the ROT13 algorithm page
+	"""
+    def get(self):
+       	self.render("rot13.html")
+    def post(self):
+       	input = self.request.get('text')
+        output = convertString(input)
+        self.render("rot13.html", output=output)
 
 class SignupHandler(Handler):
+	"""
+	A handler for our fake signup page! Soon this will be a part of the blog
+	The user has to submit a valid username, a valid password (twice, and they
+	have to match), and if the user submits an email (it's optional), it has to 
+	be a valid email.
+	"""
 	def get(self):
 		self.render("signup.html")
 
@@ -202,6 +240,9 @@ class SignupHandler(Handler):
 			self.redirect('/thanks?username=' + username)
 
 	def validate_username(self, username):
+		"""
+		validating the username for our fake signup.
+		"""
 		if username:
 			prog = re.compile(usernamePattern)
 			match = prog.match(username)
@@ -209,6 +250,9 @@ class SignupHandler(Handler):
 				return True
 	
 	def validate_password(self, password):
+		"""
+		validating the password for our fake signup.
+		"""
 		if password:
 			prog = re.compile(passwordPattern)
 			match = prog.match(password)
@@ -216,10 +260,16 @@ class SignupHandler(Handler):
 				return True
 	
 	def validate_passwords(self, password, verify):
+		"""
+		validating that our passwords match.
+		"""
 		if password == verify:
 			return True
 
 	def validate_email(self, email):
+		"""
+		validating the email for our fake signup
+		"""
 		if email and email != "":
 			prog = re.compile(emailPattern)
 			match  = prog.match(email)
@@ -229,10 +279,14 @@ class SignupHandler(Handler):
 			return True
 
 class ThanksHandler(Handler):
+	"""
+	A simple handler for when the user submits valid data on our fake signup page
+	"""
 	def get(self):
 		username = self.request.get('username')
 		self.response.out.write("<h1>thanks, %s!</h1>" % username)
 
+# Make the app go!
 app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
     		('/unit2/signup', SignupHandler), ('/unit3/ascii', AsciiHandler), \
