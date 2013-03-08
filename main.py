@@ -92,20 +92,6 @@ class AsciiHandler(Handler):
 		else:
 			error = "Gotta have both title and artwork!"
 			self.render_front(title, art, error)
-
-class BlogHandler(Handler):
-	"""
-	BlogHandler is for our front blog page. It displays the newest results as well
-	as offering a link to make a new post.
-	"""
-	def get(self):
-		
-		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10")
-		
-		if posts.count() > 10:
-			self.render("blog.html", posts=posts, nextPage=2, backPage=0)
-		else:
-			self.render("blog.html", posts=posts, nextPage="", backPage=0)
 		
 class NewPostHandler(Handler):
 	"""
@@ -134,13 +120,13 @@ class NewPostHandler(Handler):
 			error = "Gotta have both a subject and some content!"
 			self.render_front(subject, content, error)
 
-class BlogOldPageHandler(Handler):
+class BlogHandler(Handler):
 	"""
-	BlogOldPageHandler is for the many backlogged pages of the blog. If there are 
-	more results to display after the current page, we put a Next Page link at the bottom.
-	The pageNo argument, from the URL, determines where in the database to start
+	BlogHandler is the standard page for our blog-- both the front page and any
+	archives. We offset our query by the page number, if we're in the archives,
+	and we show next and back buttons as appropriate!
 	"""
-	def get(self, pageNo):
+	def get(self, pageNo="1"):
 		offset = (int(pageNo)-1) * 10
 		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10 OFFSET %d" % offset)
 		
@@ -294,4 +280,4 @@ app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
     		('/unit2/signup', SignupHandler), ('/unit3/ascii', AsciiHandler), \
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
-    		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogOldPageHandler)], debug=True)
+    		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler)], debug=True)
