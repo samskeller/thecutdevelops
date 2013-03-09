@@ -53,6 +53,9 @@ class Handler(webapp2.RequestHandler):
 		self.write(self.render_str(template, **kwargs))
 
 class Art(db.Model):
+	"""
+	Art db entry for the ascii art page
+	"""
 	title = db.StringProperty(required = True)
 	art = db.TextProperty(required = True)
 	created = db.DateTimeProperty(auto_now_add = True)
