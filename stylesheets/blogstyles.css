@@ -3,6 +3,10 @@ body {
 	width:1000px;
 	margin:0 auto;
 	padding:10px;
+	background:url('supersonics.jpg') no-repeat center center fixed;
+	background-size:cover;
+	-moz-background-size:cover;
+	-webkit-background-size:cover;
 }
 
 .error {
@@ -15,7 +19,7 @@ label {
 }
 
 textarea {
-	width:400px;
+	width:1000px;
 	height:200px;
 	font-size:17px;
 	font-family:monospace;
@@ -23,7 +27,7 @@ textarea {
 
 hr {
 	margin:30px auto;
-	border: 3px dashed #000;
+	border: 3px dashed #606060;
 }
 
 
@@ -40,6 +44,7 @@ hr {
 
 pre.fakeDiv {
 	display:inline;
+	color:#3399CC;
 }
 .mission {
 	font-family:Verdana,sans-serif;
@@ -48,6 +53,8 @@ pre.fakeDiv {
 	color:gray;
 	font-weight:bold;
 	text-align:center;
+	background-color:#FFFFFF;
+	opacity:0.9;
 }
 .post-subject {
 	font-weight:bold;
@@ -58,11 +65,16 @@ pre.fakeDiv {
 
 .post-content {
 	margin:0px;
-	font-size:17px;
+	font-size:16px;
+}
+
+.post {
+	background-color:#FFFFFF;
+	opacity:0.9;
 }
 
 input[type=text] {
-	width: 400px;
+	width: 1000px;
 	font-size: 20px;
 	padding: 2px;
 }
@@ -89,4 +101,5 @@ pre {
 	word-wrap: break-word;
 	white-space: pre-wrap;
 	overflow-x: auto;
+	color:black;
 }
