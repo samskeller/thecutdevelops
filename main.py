@@ -20,7 +20,7 @@ import re
 import os
 import sys
 import jinja2
-from datetime import date
+from datetime import datetime
 
 from google.appengine.ext import db
 
@@ -114,7 +114,7 @@ class NewPostHandler(Handler):
 		content = self.request.get("content")
 		
 		if subject and content:
-			created = str(date.today())
+			created = datetime.utcnow().strftime("%I:%M%p %A, %B %d, %Y")
 			p = Post(subject=subject, content=content, created=created)
 			p.put()
 						

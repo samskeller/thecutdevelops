@@ -75,6 +75,12 @@ pre.fakeDiv {
 	font-size:16px;
 }
 
+.post-date {
+	float:right;
+	font-size:20px;
+	font-style:italic;
+}
+
 .post {
 	background-color:#FFFFFF;
 	opacity:0.9;
