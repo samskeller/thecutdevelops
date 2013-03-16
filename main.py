@@ -192,6 +192,20 @@ class Rot13Handler(Handler):
 		input = self.request.get('text')
 		output = convertString(input)
 		self.render("rot13.html", output=output)
+		
+class CookieTester(Handler):
+	"""
+	Testing out settings some cookies
+	"""
+	def get(self):
+		self.response.headers['Content-Type'] = 'text/plain'
+		visits = self.request.cookies.get('visits', '0')
+		if visits.isdigit():
+			visits = int(visits) + 1
+		else:
+			visits = 0
+		self.response.headers.add_header('Set-Cookie', 'visits=%d' % visits)
+		self.response.out.write("You've visited this page %s times!" % visits)
 
 class SignupHandler(Handler):
 	"""
@@ -283,4 +297,5 @@ app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
     		('/unit2/signup', SignupHandler), ('/unit3/ascii', AsciiHandler), \
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
-    		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler)], debug=True)
+    		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
+    		(r'/cookies', CookieTester)], debug=True)
