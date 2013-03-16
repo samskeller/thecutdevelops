@@ -7,6 +7,9 @@
     
     <body>
       <form method="post">
+      {% if backPage > 0: %}
+      	<a href="/blog" class="homebutton">&lt;-- home page</a>
+      {% endif %}
         <a href="/blog" class="title">Sam's Blog</a>
         <span style="float:right"><a class="newpost" href="/blog/newpost">New Post</a></span>
         <br>
