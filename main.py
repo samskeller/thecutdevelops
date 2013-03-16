@@ -20,6 +20,7 @@ import re
 import os
 import sys
 import jinja2
+import hmac
 from datetime import datetime
 
 from google.appengine.ext import db
@@ -199,13 +200,30 @@ class CookieTester(Handler):
 	"""
 	def get(self):
 		self.response.headers['Content-Type'] = 'text/plain'
-		visits = self.request.cookies.get('visits', '0')
-		if visits.isdigit():
-			visits = int(visits) + 1
-		else:
-			visits = 0
-		self.response.headers.add_header('Set-Cookie', 'visits=%d' % visits)
+		visits = 0
+		visit_cookie_str = self.request.cookies.get('visits')
+		if visit_cookie_str:
+			cookie_val = self.check_secure_val(visit_cookie_str)
+			if cookie_val:
+				visits = int(cookie_val)
+		
+		visits += 1
+		new_cookie_val = self.make_secure_val(str(visits))
+		self.response.headers.add_header('Set-Cookie', 'visits=%s' % new_cookie_val)
 		self.response.out.write("You've visited this page %s times!" % visits)
+		
+	def hashIt(self, s):
+		return hmac.new("secretkey", s).hexdigest()
+		
+	def make_secure_val(self, s):
+		return "%s|%s" % (s, self.hashIt(s))
+		
+	def check_secure_val(self, h):
+		value = h.split("|")[0]
+		if h == self.make_secure_val(value):
+			return value
+		else:
+			return None
 
 class SignupHandler(Handler):
 	"""
