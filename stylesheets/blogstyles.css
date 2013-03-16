@@ -20,7 +20,7 @@ label {
 
 textarea {
 	width:1000px;
-	height:200px;
+	height:400px;
 	font-size:17px;
 	font-family:monospace;
 }
@@ -62,6 +62,8 @@ pre.fakeDiv {
 	text-align:center;
 	background-color:#FFFFFF;
 	opacity:0.9;
+	border-radius:15px;
+	padding:4px;
 }
 .post-subject {
 	font-weight:bold;
@@ -84,6 +86,8 @@ pre.fakeDiv {
 .post {
 	background-color:#FFFFFF;
 	opacity:0.9;
+	border-radius:20px;
+	padding:10px;
 }
 
 input[type=text] {
