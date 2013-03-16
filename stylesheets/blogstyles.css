@@ -65,11 +65,16 @@ pre.fakeDiv {
 	border-radius:15px;
 	padding:4px;
 }
+
 .post-subject {
 	font-weight:bold;
 	font-size:30px;
 	color:black;
 	text-decoration:none;
+}
+
+a.post-subject:hover {
+	text-decoration:underline;
 }
 
 .post-content {
@@ -97,7 +102,14 @@ input[type=text] {
 }
 
 input[type=submit] {
-	font-size: 24px;
+	border:1px solid #FFFFFF;
+	background:#ce231d;
+	color:white;
+	font:bold 24px 'Trebuchet MS';
+	padding:4px;
+	cursor:pointer;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
 }
 
 .newpost {
@@ -105,8 +117,12 @@ input[type=submit] {
 	display:block;
 	font-weight:bold;
 	text-decoration:none;
-	color:red;
+	color:#ce231d;
 	font-size:30px;
+}
+
+a.newpost:hover {
+	color:#2e23bd;
 }
   
 .post + .post {
