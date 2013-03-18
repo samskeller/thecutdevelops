@@ -230,7 +230,7 @@ class SignupHandler(Handler):
 	A handler for our fake signup page! Soon this will be a part of the blog
 	The user has to submit a valid username, a valid password (twice, and they
 	have to match), and if the user submits an email (it's optional), it has to 
-	be a valid email.
+	be a valid email. It sets a cookie in the user's browser with the username
 	"""
 	def get(self):
 		self.render("signup.html")
@@ -261,8 +261,36 @@ class SignupHandler(Handler):
 		if error:
 			self.render("signup.html", **parameters)
 		else:
-			self.redirect('/thanks?username=' + username)
+			self.response.headers['Content-Type'] = 'text/plain'
 
+			name_cookie_str = self.request.cookies.get('name')
+			if name_cookie_str:
+				cookie_val = self.check_secure_val(name_cookie_str)
+				if cookie_val:
+					name = cookie_val
+				else:
+					self.render("signup.html", **parameters)
+					return
+			else:
+				name = username
+			
+			new_cookie_val = self.make_secure_val(str(name))
+			self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % new_cookie_val)
+			self.redirect('/thanks')
+
+	def hashIt(self, s):
+		return hmac.new("secretkey", s).hexdigest()
+		
+	def make_secure_val(self, s):
+		return "%s|%s" % (s, self.hashIt(s))
+		
+	def check_secure_val(self, h):
+		value = h.split("|")[0]
+		if h == self.make_secure_val(value):
+			return value
+		else:
+			return None
+	
 	def validate_username(self, username):
 		"""
 		validating the username for our fake signup.
@@ -307,13 +335,15 @@ class ThanksHandler(Handler):
 	A simple handler for when the user submits valid data on our fake signup page
 	"""
 	def get(self):
-		username = self.request.get('username')
+		name_cookie_str = self.request.cookies.get('name')
+		
+		username = name_cookie_str.split("|")[0]
 		self.response.out.write("<h1>thanks, %s!</h1>" % username)
 
 # Make the app go!
 app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
-    		('/unit2/signup', SignupHandler), ('/unit3/ascii', AsciiHandler), \
+    		('/signup', SignupHandler), ('/unit3/ascii', AsciiHandler), \
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
     		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
     		(r'/cookies', CookieTester)], debug=True)
