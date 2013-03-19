@@ -20,7 +20,7 @@ import re
 import os
 import sys
 import jinja2
-import hmac
+import hashlib
 from datetime import datetime
 
 from google.appengine.ext import db
@@ -69,6 +69,15 @@ class Post(db.Model):
 	content = db.TextProperty(required = True)
 	created = db.StringProperty(required = True)
 	createdExact = db.DateTimeProperty(auto_now_add = True)
+	
+class User(db.Model):
+	"""
+	User db entry for storing username and password
+	"""
+	username = db.StringProperty(required = True)
+	hashedPassword = db.StringProperty(required = True)
+	signupDate = db.DateTimeProperty(auto_now_add = True)
+	email = db.StringProperty(required = False)
 	
 class AsciiHandler(Handler):
 	"""
@@ -237,60 +246,73 @@ class SignupHandler(Handler):
 
 	def post(self):
 		error = False
-		username = self.request.get('username')
-		password = self.request.get('password')
-		verify = self.request.get('verify')
-		email = self.request.get('email')
+		self.username = self.request.get('username')
+		self.password = self.request.get('password')
+		self.verify = self.request.get('verify')
+		self.email = self.request.get('email')
 		
-		parameters = {'username' : username, 'email' : email}
+		parameters = {'username' : self.username, 'email' : self.email}
 		
-		if not self.validate_username(username):
+		if not self.validate_username(self.username):
 			error = True
 			parameters['error_username'] = "That's not a valid username" 
-		if not self.validate_password(password):
+		if not self.validate_password(self.password):
 			error = True
 			parameters['error_password'] = "That's not a valid password"
-		elif not self.validate_passwords(password, verify):
+		elif not self.validate_passwords(self.password, self.verify):
 			error = True
 			parameters['error_verify'] = "Passwords don't match" 
 		
-		if not self.validate_email(email):
+		if not self.validate_email(self.email):
 			error = True
 			parameters['error_email'] = "That's not a valid email"
 			
 		if error:
 			self.render("signup.html", **parameters)
 		else:
-			self.response.headers['Content-Type'] = 'text/plain'
-
-			name_cookie_str = self.request.cookies.get('name')
-			if name_cookie_str:
-				cookie_val = self.check_secure_val(name_cookie_str)
-				if cookie_val:
-					name = cookie_val
-				else:
-					self.render("signup.html", **parameters)
-					return
-			else:
-				name = username
+			self.done()
 			
-			new_cookie_val = self.make_secure_val(str(name))
-			self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % new_cookie_val)
-			self.redirect('/thanks')
+			
+	def done(self, *args, **kwargs):
+		raise NotImplementedError
 
-	def hashIt(self, s):
-		return hmac.new("secretkey", s).hexdigest()
+class Register(SignupHandler):
+	def done(self):
 		
-	def make_secure_val(self, s):
-		return "%s|%s" % (s, self.hashIt(s))
+		self.response.headers['Content-Type'] = 'text/plain'
 		
-	def check_secure_val(self, h):
-		value = h.split("|")[0]
-		if h == self.make_secure_val(value):
-			return value
+		hashedPassword = make_secure_val(password)
+		
+		if email != "":
+			u = User(username=username, hashedPassword=hashedPassword, email=email)
 		else:
-			return None
+			u = User(username=username, hashedPassword=hashedPassword)
+			
+		u.put()
+		
+		name_cookie_str = self.request.cookies.get('name')
+		if name_cookie_str:
+			cookie_val = self.check_secure_val(name_cookie_str)
+			if cookie_val:
+				name = cookie_val
+			else:
+				self.render("signup.html", **parameters)
+				return
+		else:
+			name = username
+		
+		new_cookie_val = self.make_secure_val(str(name))
+		self.SetCookie("name", new_cookie_val)
+		self.redirect('/thanks')
 	
+	def setCookie(self, name, value):
+		cookie = make_secure_val(value)
+		self.response.headers.add_header('Set-Cookie, "%s=%s; Path=/' % (name, cookie)
+	
+	def readCookie(self, name):
+		cookie = self.request.cookies.get(name)
+		return cookie and check_secure_val(cookie)
+		
 	def validate_username(self, username):
 		"""
 		validating the username for our fake signup.
@@ -330,6 +352,33 @@ class SignupHandler(Handler):
 		else:
 			return True
 
+
+def hashIt(self, s):
+	return hashlib.sha256("secretkey" + s).hexdigest()
+	
+def make_secure_val(self, s):
+	return "%s|%s" % (s, hashIt(s))
+	
+def check_secure_val(self, h):
+	value = h.split("|")[0]
+	if h == make_secure_val(value):
+		return value
+	else:
+		return None
+
+def makeSalt(length = 5):
+	return "".join(random.choice(letters) for x in range(length))
+	
+def makePasswordHash(name, pwd, salt=None):
+	if not salt:
+		salt = makeSalt()
+	h = hashlib.sha256(name + pwd + salt).hexdigest()
+	return '%s,%s' % (salt, h)
+
+def validatePassword(name, password, h):
+	salt = h.split(",")[0]
+	return h == makePasswordHash(name, password, salt)
+	
 class ThanksHandler(Handler):
 	"""
 	A simple handler for when the user submits valid data on our fake signup page
