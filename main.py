@@ -18,9 +18,11 @@
 import webapp2
 import re
 import os
-import sys
 import jinja2
 import hashlib
+import hmac
+import random
+from string import letters
 from datetime import datetime
 
 from google.appengine.ext import db
@@ -69,15 +71,6 @@ class Post(db.Model):
 	content = db.TextProperty(required = True)
 	created = db.StringProperty(required = True)
 	createdExact = db.DateTimeProperty(auto_now_add = True)
-	
-class User(db.Model):
-	"""
-	User db entry for storing username and password
-	"""
-	username = db.StringProperty(required = True)
-	hashedPassword = db.StringProperty(required = True)
-	signupDate = db.DateTimeProperty(auto_now_add = True)
-	email = db.StringProperty(required = False)
 	
 class AsciiHandler(Handler):
 	"""
@@ -253,17 +246,17 @@ class SignupHandler(Handler):
 		
 		parameters = {'username' : self.username, 'email' : self.email}
 		
-		if not self.validate_username(self.username):
+		if not validate_username(self.username):
 			error = True
 			parameters['error_username'] = "That's not a valid username" 
-		if not self.validate_password(self.password):
+		if not validate_password(self.password):
 			error = True
 			parameters['error_password'] = "That's not a valid password"
-		elif not self.validate_passwords(self.password, self.verify):
+		elif not validate_passwords(self.password, self.verify):
 			error = True
 			parameters['error_verify'] = "Passwords don't match" 
 		
-		if not self.validate_email(self.email):
+		if not validate_email(self.email):
 			error = True
 			parameters['error_email'] = "That's not a valid email"
 			
@@ -274,92 +267,120 @@ class SignupHandler(Handler):
 			
 			
 	def done(self, *args, **kwargs):
-		raise NotImplementedError
+		raise
 
 class Register(SignupHandler):
 	def done(self):
 		
 		self.response.headers['Content-Type'] = 'text/plain'
 		
-		hashedPassword = make_secure_val(password)
+		u = User.get_by_name(self.username)
 		
-		if email != "":
-			u = User(username=username, hashedPassword=hashedPassword, email=email)
+		if u:
+			##redirect
+			self.render('signup.html', error_username = "That user already exists")
 		else:
-			u = User(username=username, hashedPassword=hashedPassword)
+			u = User.register(username=self.username, password=self.password, email=self.email)
 			
-		u.put()
+			u.put()
+			
+			self.login(u)
 		
-		name_cookie_str = self.request.cookies.get('name')
-		if name_cookie_str:
-			cookie_val = self.check_secure_val(name_cookie_str)
-			if cookie_val:
-				name = cookie_val
-			else:
-				self.render("signup.html", **parameters)
-				return
-		else:
-			name = username
-		
-		new_cookie_val = self.make_secure_val(str(name))
-		self.SetCookie("name", new_cookie_val)
-		self.redirect('/thanks')
+		# name_cookie_str = self.request.cookies.get('name')
+# 		if name_cookie_str:
+# 			cookie_val = self.check_secure_val(name_cookie_str)
+# 			if cookie_val:
+# 				name = cookie_val
+# 			else:
+# 				self.render("signup.html", **parameters)
+# 				return
+# 		else:
+# 			name = username
+# 		
+# 		new_cookie_val = self.make_secure_val(str(name))
+# 		self.SetCookie("name", new_cookie_val)
+			self.redirect('/thanks')
 	
 	def setCookie(self, name, value):
 		cookie = make_secure_val(value)
-		self.response.headers.add_header('Set-Cookie, "%s=%s; Path=/' % (name, cookie)
+		self.response.headers.add_header('Set-Cookie', '%s=%s; Path=/' % (name, cookie))
 	
 	def readCookie(self, name):
 		cookie = self.request.cookies.get(name)
 		return cookie and check_secure_val(cookie)
+	
+	def login(self, user):
+		self.setCookie('user_id', str(user.key().id()))
 		
-	def validate_username(self, username):
-		"""
-		validating the username for our fake signup.
-		"""
-		if username:
-			prog = re.compile(usernamePattern)
-			match = prog.match(username)
-			if match:
-				return True
+def validate_username(username):
+	"""
+	validating the username for our fake signup.
+	"""
+	if username:
+		prog = re.compile(usernamePattern)
+		match = prog.match(username)
+		if match:
+			return True
 	
-	def validate_password(self, password):
-		"""
-		validating the password for our fake signup.
-		"""
-		if password:
-			prog = re.compile(passwordPattern)
-			match = prog.match(password)
-			if match:
-				return True
-	
-	def validate_passwords(self, password, verify):
-		"""
-		validating that our passwords match.
-		"""
-		if password == verify:
+def validate_password(password):
+	"""
+	validating the password for our fake signup.
+	"""
+	if password:
+		prog = re.compile(passwordPattern)
+		match = prog.match(password)
+		if match:
 			return True
 
-	def validate_email(self, email):
-		"""
-		validating the email for our fake signup
-		"""
-		if email and email != "":
-			prog = re.compile(emailPattern)
-			match  = prog.match(email)
-			if match:
-				return True	
-		else:
-			return True
+def validate_passwords(password, verify):
+	"""
+	validating that our passwords match.
+	"""
+	if password == verify:
+		return True
+
+def validate_email(email):
+	"""
+	validating the email for our fake signup
+	"""
+	if email and email != "":
+		prog = re.compile(emailPattern)
+		match  = prog.match(email)
+		if match:
+			return True	
+	else:
+		return True
 
 
-def hashIt(self, s):
-	return hashlib.sha256("secretkey" + s).hexdigest()
+class User(db.Model):
+	"""
+	User db entry for storing username and password
+	"""
+	username = db.StringProperty(required = True)
+	hashedPassword = db.StringProperty(required = True)
+	signupDate = db.DateTimeProperty(auto_now_add = True)
+	email = db.StringProperty()
 	
-def make_secure_val(self, s):
+	@classmethod
+	def by_id(cls, uid):
+		return User.get_by_id(uid)
+	
+	@classmethod
+	def get_by_name(cls, username):
+		return User.all().filter('name =', username).get()
+	
+	@classmethod
+	def register(cls, username, password, email = None):
+		hashedPassword = makePasswordHash(username, password)
+		return User(username = username, hashedPassword = hashedPassword, email = email)
+
+def hashIt(s):
+	return hmac.new("secretkey", s).hexdigest()
+	
+def make_secure_val(s):
 	return "%s|%s" % (s, hashIt(s))
 	
-def check_secure_val(self, h):
+def check_secure_val(h):
 	value = h.split("|")[0]
 	if h == make_secure_val(value):
 		return value
@@ -392,7 +413,7 @@ class ThanksHandler(Handler):
 # Make the app go!
 app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
-    		('/signup', SignupHandler), ('/unit3/ascii', AsciiHandler), \
+    		('/signup', Register), ('/unit3/ascii', AsciiHandler), \
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
     		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
     		(r'/cookies', CookieTester)], debug=True)
