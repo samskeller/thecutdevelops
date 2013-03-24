@@ -286,21 +286,8 @@ class Register(SignupHandler):
 			
 			u.put()
 			
-			self.login(u)
-		
-		# name_cookie_str = self.request.cookies.get('name')
-# 		if name_cookie_str:
-# 			cookie_val = self.check_secure_val(name_cookie_str)
-# 			if cookie_val:
-# 				name = cookie_val
-# 			else:
-# 				self.render("signup.html", **parameters)
-# 				return
-# 		else:
-# 			name = username
-# 		
-# 		new_cookie_val = self.make_secure_val(str(name))
-# 		self.SetCookie("name", new_cookie_val)
+			self.setCookie('user_id', str(u.key().id()))
+			
 			self.redirect('/thanks')
 	
 	def setCookie(self, name, value):
@@ -310,11 +297,8 @@ class Register(SignupHandler):
 	def readCookie(self, name):
 		cookie = self.request.cookies.get(name)
 		return cookie and check_secure_val(cookie)
-	
-	def login(self, user):
-		self.setCookie('user_id', str(user.key().id()))
 
-class LoginHandler(Handler):
+class LoginHandler(Register):
 	def get(self):
 		self.render('login.html')
 	
@@ -333,9 +317,19 @@ class LoginHandler(Handler):
 			parameters['error_password'] = "That's not a valid password"
 		
 		if error:
-			self.render("signup.html", **parameters)
+			self.render("login.html", **parameters)
 		else:
-			self.redirect('/welcome')
+			self.response.headers['Content-Type'] = 'text/plain'
+		
+			u = User.login(self.username, self.password)
+				
+			if u:
+				self.setCookie('user_id', str(u.key().id()))
+				
+				self.redirect('/welcome')
+			else:
+				parameters['login_error'] = "Invalid login"
+				self.render("login.html", **parameters)
 	
 def validate_username(username):
 	"""
@@ -398,6 +392,12 @@ class User(db.Model):
 	def register(cls, username, password, email = None):
 		hashedPassword = makePasswordHash(username, password)
 		return User(username = username, hashedPassword = hashedPassword, email = email)
+	
+	@classmethod
+	def login(cls, username, password):
+		user = cls.get_by_name(username)
+		if user and validatePassword(username, password, user.hashedPassword):
+			return user
 		
 def hashIt(s):
 	return hmac.new(secretKey, s).hexdigest()
@@ -427,16 +427,26 @@ def validatePassword(name, password, h):
 	
 class ThanksHandler(Handler):
 	"""
-	A simple handler for when the user submits valid data on our fake signup page
+	A simple handler for when the user signs up for the page
 	"""
 	def get(self):
 		user_ID_cookie = self.request.cookies.get('user_id')
 		if user_ID_cookie and check_secure_val(user_ID_cookie):
 			uid = user_ID_cookie.split("|")[0]
-			user = User.by_id(int(uid))
-			self.response.out.write("<h1>thanks, %s!</h1>" % user.username)
+			self.user = User.by_id(int(uid))
+			self.messageForUser()
 		else:
 			self.redirect('/signup')
+	
+	def messageForUser(self):
+		self.response.out.write("<h1>thanks, %s!</h1>" % self.user.username)
+
+class WelcomeHandler(ThanksHandler):
+	"""
+	A handler for welcoming in old users
+	"""
+	def messageForUser(self):
+		self.response.out.write("<h1>Welcome back, %s!</h1>" % self.user.username)
 
 # Make the app go!
 app = webapp2.WSGIApplication([
@@ -444,4 +454,5 @@ app = webapp2.WSGIApplication([
     		('/signup', Register), ('/unit3/ascii', AsciiHandler), \
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
     		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
-    		(r'/cookies', CookieTester), (r'/login', LoginHandler)], debug=True)
+    		(r'/cookies', CookieTester), (r'/login', LoginHandler), \
+    		(r'/welcome', WelcomeHandler)], debug=True)

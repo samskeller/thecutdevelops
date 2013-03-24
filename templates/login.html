@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <title>This is a signup form</title>
+  </head>
+  <body>
+    <h2>Log in to my website!</h2>
+    <form method="post">
+      <table>
+	<tr>
+	  <td>
+	    Username
+	  </td>
+	  <td>
+	    <input type="text" name="username" value="{{username}}"><br>
+	  </td>
+	  <td>
+	    {{error_username}}
+	</tr>
+
+	<tr>
+	  <td>
+	    Password
+	  </td>
+	  <td>
+	    <input type="password" name="password" value=""><br>
+	  </td>
+	  <td>
+	    {{error_password}}
+	  </td>
+	</tr>
+	
+	{{login_error}}
+      </table>
+      <input type="submit">
+      <p style="color:red;"></p>
+    </form>
+  </body>
+</html>
