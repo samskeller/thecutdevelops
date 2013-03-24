@@ -32,6 +32,8 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
 								autoescape = True)
 
+secretKey = "BwWuOrchjptblMWljjbOxzapj"
+
 # Alphabets for our ROT13 algorithm
 alphabetLower = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 alphabetUpper = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'] 
@@ -215,7 +217,7 @@ class CookieTester(Handler):
 		self.response.out.write("You've visited this page %s times!" % visits)
 		
 	def hashIt(self, s):
-		return hmac.new("secretkey", s).hexdigest()
+		return hmac.new(secretKey, s).hexdigest()
 		
 	def make_secure_val(self, s):
 		return "%s|%s" % (s, self.hashIt(s))
@@ -367,7 +369,7 @@ class User(db.Model):
 	
 	@classmethod
 	def get_by_name(cls, username):
-		return User.all().filter('name =', username).get()
+		return User.all().filter('username =', username).get()
 	
 	@classmethod
 	def register(cls, username, password, email = None):
@@ -375,7 +377,7 @@ class User(db.Model):
 		return User(username = username, hashedPassword = hashedPassword, email = email)
 
 def hashIt(s):
-	return hmac.new("secretkey", s).hexdigest()
+	return hmac.new(secretKey, s).hexdigest()
 	
 def make_secure_val(s):
 	return "%s|%s" % (s, hashIt(s))
@@ -406,9 +408,11 @@ class ThanksHandler(Handler):
 	"""
 	def get(self):
 		name_cookie_str = self.request.cookies.get('name')
-		
-		username = name_cookie_str.split("|")[0]
-		self.response.out.write("<h1>thanks, %s!</h1>" % username)
+		if name_cookie_str:
+			username = name_cookie_str.split("|")[0]
+			self.response.out.write("<h1>thanks, %s!</h1>" % username)
+		else:
+			self.response.out.write("<h1>thanks!</h1>")
 
 # Make the app go!
 app = webapp2.WSGIApplication([
