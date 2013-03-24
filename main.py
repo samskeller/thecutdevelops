@@ -313,7 +313,30 @@ class Register(SignupHandler):
 	
 	def login(self, user):
 		self.setCookie('user_id', str(user.key().id()))
+
+class LoginHandler(Handler):
+	def get(self):
+		self.render('login.html')
+	
+	def post(self):
+		error = False
+		self.username = self.request.get('username')
+		self.password = self.request.get('password')
 		
+		parameters = {'usernane' : self.username}
+		
+		if not validate_username(self.username):
+			error = True
+			parameters['error_username'] = "That's not a valid username" 
+		if not validate_password(self.password):
+			error = True
+			parameters['error_password'] = "That's not a valid password"
+		
+		if error:
+			self.render("signup.html", **parameters)
+		else:
+			self.redirect('/welcome')
+	
 def validate_username(username):
 	"""
 	validating the username for our fake signup.
@@ -375,7 +398,7 @@ class User(db.Model):
 	def register(cls, username, password, email = None):
 		hashedPassword = makePasswordHash(username, password)
 		return User(username = username, hashedPassword = hashedPassword, email = email)
-
+		
 def hashIt(s):
 	return hmac.new(secretKey, s).hexdigest()
 	
@@ -407,12 +430,13 @@ class ThanksHandler(Handler):
 	A simple handler for when the user submits valid data on our fake signup page
 	"""
 	def get(self):
-		name_cookie_str = self.request.cookies.get('name')
-		if name_cookie_str:
-			username = name_cookie_str.split("|")[0]
-			self.response.out.write("<h1>thanks, %s!</h1>" % username)
+		user_ID_cookie = self.request.cookies.get('user_id')
+		if user_ID_cookie and check_secure_val(user_ID_cookie):
+			uid = user_ID_cookie.split("|")[0]
+			user = User.by_id(int(uid))
+			self.response.out.write("<h1>thanks, %s!</h1>" % user.username)
 		else:
-			self.response.out.write("<h1>thanks!</h1>")
+			self.redirect('/signup')
 
 # Make the app go!
 app = webapp2.WSGIApplication([
@@ -420,4 +444,4 @@ app = webapp2.WSGIApplication([
     		('/signup', Register), ('/unit3/ascii', AsciiHandler), \
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
     		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
-    		(r'/cookies', CookieTester)], debug=True)
+    		(r'/cookies', CookieTester), (r'/login', LoginHandler)], debug=True)
