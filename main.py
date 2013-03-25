@@ -117,9 +117,11 @@ class BlogHandler(Handler):
 		backPage = int(pageNo) - 1
 		
 		if postsLeft > 10:
-			self.render("blog.html", posts=posts, nextPage=int(pageNo)+1, backPage=backPage)
+			nextPage = int(pageNo) + 1
 		else:
-			self.render("blog.html", posts=posts, nextPage="", backPage=backPage)
+			nextPage = 0
+		
+		self.render("blog.html", posts=posts, nextPage=nextPage, backPage=backPage)
 	
 	def setCookie(self, name, value):
 		cookie = make_secure_val(value)
