@@ -100,33 +100,6 @@ class AsciiHandler(Handler):
 		else:
 			error = "Gotta have both title and artwork!"
 			self.render_front(title, art, error)
-		
-class NewPostHandler(Handler):
-	"""
-	NewPostHandler handlers the form for adding a new post to our blog.
-	The user must submit a valid subject and valid content for it to be stored
-	in our database and displayed on the front blog page. Successful submission
-	redirects to a permalink.
-	"""
-	def render_front(self, subject="", content="", error=""):
-		self.render("newPost.html", subject=subject, content=content, error=error)
-		
-	def get(self):		
-		self.render_front()
-		
-	def post(self):
-		subject = self.request.get("subject")
-		content = self.request.get("content")
-		
-		if subject and content:
-			created = datetime.utcnow().strftime("%I:%M%p %A, %B %d, %Y")
-			p = Post(subject=subject, content=content, created=created)
-			p.put()
-						
-			self.redirect("/blog/%d" % p.key().id())
-		else:
-			error = "Gotta have both a subject and some content!"
-			self.render_front(subject, content, error)
 
 class BlogHandler(Handler):
 	"""
@@ -148,7 +121,53 @@ class BlogHandler(Handler):
 		else:
 			self.render("blog.html", posts=posts, nextPage="", backPage=backPage)
 	
-class OldPostHandler(Handler):
+	def setCookie(self, name, value):
+		cookie = make_secure_val(value)
+		self.response.headers.add_header('Set-Cookie', '%s=%s; Path=/' % (name, cookie))
+	
+	def readCookie(self, name):
+		cookie = self.request.cookies.get(name)
+		return cookie and check_secure_val(cookie)
+	
+	def initialize(self, *a, **kw):
+		webapp2.RequestHandler.initialize(self, *a, **kw)
+		uid = self.readCookie('user_id')
+		self.user = uid and User.by_id(int(uid))
+			
+class NewPostHandler(BlogHandler):
+	"""
+	NewPostHandler handlers the form for adding a new post to our blog.
+	The user must submit a valid subject and valid content for it to be stored
+	in our database and displayed on the front blog page. Successful submission
+	redirects to a permalink.
+	"""
+	def render_front(self, subject="", content="", error=""):
+		self.render("newPost.html", subject=subject, content=content, error=error)
+		
+	def get(self):
+		if self.user:		
+			self.render_front()
+		else:
+			self.redirect('/login')
+		
+	def post(self):
+		if not self.user:
+			self.redirect('/blog')
+			
+		subject = self.request.get("subject")
+		content = self.request.get("content")
+		
+		if subject and content:
+			created = datetime.utcnow().strftime("%I:%M%p %A, %B %d, %Y")
+			p = Post(subject=subject, content=content, created=created)
+			p.put()
+						
+			self.redirect("/blog/%d" % p.key().id())
+		else:
+			error = "Gotta have both a subject and some content!"
+			self.render_front(subject, content, error)
+
+class OldPostHandler(BlogHandler):
 	"""
 	OldPostHandler is our handler for the permalink pages that exist for each old blog post.
 	"""
@@ -229,7 +248,7 @@ class CookieTester(Handler):
 		else:
 			return None
 
-class SignupHandler(Handler):
+class SignupHandler(BlogHandler):
 	"""
 	A handler for our fake signup page! Soon this will be a part of the blog
 	The user has to submit a valid username, a valid password (twice, and they
@@ -289,16 +308,8 @@ class Register(SignupHandler):
 			self.setCookie('user_id', str(u.key().id()))
 			
 			self.redirect('/thanks')
-	
-	def setCookie(self, name, value):
-		cookie = make_secure_val(value)
-		self.response.headers.add_header('Set-Cookie', '%s=%s; Path=/' % (name, cookie))
-	
-	def readCookie(self, name):
-		cookie = self.request.cookies.get(name)
-		return cookie and check_secure_val(cookie)
 
-class LoginHandler(Register):
+class LoginHandler(BlogHandler):
 	def get(self):
 		self.render('login.html')
 	
@@ -425,15 +436,12 @@ def validatePassword(name, password, h):
 	salt = h.split(",")[0]
 	return h == makePasswordHash(name, password, salt)
 	
-class ThanksHandler(Handler):
+class ThanksHandler(BlogHandler):
 	"""
 	A simple handler for when the user signs up for the page
 	"""
 	def get(self):
-		user_ID_cookie = self.request.cookies.get('user_id')
-		if user_ID_cookie and check_secure_val(user_ID_cookie):
-			uid = user_ID_cookie.split("|")[0]
-			self.user = User.by_id(int(uid))
+		if self.user:
 			self.messageForUser()
 		else:
 			self.redirect('/signup')
