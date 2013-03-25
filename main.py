@@ -129,6 +129,9 @@ class BlogHandler(Handler):
 		cookie = self.request.cookies.get(name)
 		return cookie and check_secure_val(cookie)
 	
+	def logout(self):
+		self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
+		
 	def initialize(self, *a, **kw):
 		webapp2.RequestHandler.initialize(self, *a, **kw)
 		uid = self.readCookie('user_id')
@@ -311,7 +314,10 @@ class Register(SignupHandler):
 
 class LoginHandler(BlogHandler):
 	def get(self):
-		self.render('login.html')
+		if self.user:
+			self.redirect('/blog')
+		else:
+			self.render('login.html')
 	
 	def post(self):
 		error = False
@@ -339,8 +345,13 @@ class LoginHandler(BlogHandler):
 				
 				self.redirect('/welcome')
 			else:
-				parameters['login_error'] = "Invalid login"
+				#parameters['login_error'] = "Invalid login"
 				self.render("login.html", **parameters)
+
+class LogoutHandler(BlogHandler):
+	def get(self):
+		self.logout()
+		self.redirect('/blog')
 	
 def validate_username(username):
 	"""
@@ -463,4 +474,4 @@ app = webapp2.WSGIApplication([
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
     		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
     		(r'/cookies', CookieTester), (r'/login', LoginHandler), \
-    		(r'/welcome', WelcomeHandler)], debug=True)
+    		(r'/welcome', WelcomeHandler), (r'/logout', LogoutHandler)], debug=True)
