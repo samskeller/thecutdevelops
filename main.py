@@ -336,16 +336,16 @@ class LoginHandler(BlogHandler):
 		if error:
 			self.render("login.html", **parameters)
 		else:
-			self.response.headers['Content-Type'] = 'text/plain'
 		
 			u = User.login(self.username, self.password)
 				
 			if u:
+				self.response.headers['Content-Type'] = 'text/plain'
 				self.setCookie('user_id', str(u.key().id()))
 				
 				self.redirect('/welcome')
 			else:
-				#parameters['login_error'] = "Invalid login"
+				parameters['login_error'] = "Invalid login"
 				self.render("login.html", **parameters)
 
 class LogoutHandler(BlogHandler):
