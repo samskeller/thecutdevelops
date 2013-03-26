@@ -121,7 +121,13 @@ class BlogHandler(Handler):
 		else:
 			nextPage = 0
 		
-		self.render("blog.html", posts=posts, nextPage=nextPage, backPage=backPage)
+		if self.user:
+			button = "logout"
+		else:
+			button = "login"
+		
+		
+		self.render("blog.html", posts=posts, nextPage=nextPage, backPage=backPage, button=button)
 	
 	def setCookie(self, name, value):
 		cookie = make_secure_val(value)

@@ -38,8 +38,15 @@ hr {
 	text-decoration:none;
 }
 
+.login {
+	float:right;
+	text-decoration:none;
+	position:relative;
+}
+
 .title {
-	display:block;
+	position:relative;
+	left: 35%;
 	color:black;
 	font-weight:bold;
 	font-size:55px;

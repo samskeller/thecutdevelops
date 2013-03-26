@@ -11,6 +11,13 @@
       	<a href="/blog" class="homebutton">&lt;-- home page</a>
       {% endif %}
         <a href="/blog" class="title">Sam's Blog</a>
+        {% if button == "login": %}
+        <span style="position:relative;"><a class="login" href="/login">Login</a>
+    	<span style="position:absolute; left:600px;"><a class="login" href="/signup">Register</a></span></span>
+        {% elif button == "logout": %}
+        <span><a class="login" href="/logout">Logout</a></span>
+        {% endif %}
+        <br>
         <span style="float:right"><a class="newpost" href="/blog/newpost">New Post</a></span>
         <br>
         <br>
