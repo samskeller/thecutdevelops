@@ -359,7 +359,7 @@ class LoginHandler(BlogHandler):
 class LogoutHandler(BlogHandler):
 	def get(self):
 		self.logout()
-		self.redirect('/blog')
+		self.redirect('/signup')
 	
 def validate_username(username):
 	"""
@@ -466,14 +466,16 @@ class ThanksHandler(BlogHandler):
 			self.redirect('/signup')
 	
 	def messageForUser(self):
-		self.response.out.write("<h1>thanks, %s!</h1>" % self.user.username)
+		self.response.out.write("<h1>thanks, %s!</h1><br><a href=\"blog\">\
+			Back to the blog</a>" % self.user.username)
 
 class WelcomeHandler(ThanksHandler):
 	"""
 	A handler for welcoming in old users
 	"""
 	def messageForUser(self):
-		self.response.out.write("<h1>Welcome back, %s!</h1>" % self.user.username)
+		self.response.out.write("<h1>Welcome back, %s!</h1><br><a href=\"blog\">\
+			Back to the blog</a>" % self.user.username)
 
 # Make the app go!
 app = webapp2.WSGIApplication([
