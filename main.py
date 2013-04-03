@@ -22,8 +22,10 @@ import jinja2
 import hashlib
 import hmac
 import random
+import urllib2
 from string import letters
 from datetime import datetime
+from xml.dom import minidom
 
 from google.appengine.ext import db
 
@@ -477,6 +479,18 @@ class WelcomeHandler(ThanksHandler):
 		self.response.out.write("<h1>Welcome back, %s!</h1><br><a href=\"blog\">\
 			Back to the blog</a>" % self.user.username)
 
+class CraigsListHandler(Handler):
+	def get(self):
+		#p = urllib2.urlopen("http://sfbay.craigslist.org/apa/index.rss")
+		#craigsListXML = p.read()
+		#d = minidom.parseString(craigsListXML)
+		#apartments = d.getElementsByTagName("item")
+		#latestApartment = apartments[0]
+		#title = latestApartment.getElementsByTagName('title')[0].firstChild.wholeText
+		#url = latestApartments.getElementsByTagName('link')[0].firstChild.wholeText
+		
+		#self.response.out.write("<h1>{0}<br><br>{1}".format(title, url))
+
 # Make the app go!
 app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
@@ -484,4 +498,5 @@ app = webapp2.WSGIApplication([
     		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
     		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
     		(r'/cookies', CookieTester), (r'/login', LoginHandler), \
-    		(r'/welcome', WelcomeHandler), (r'/logout', LogoutHandler)], debug=True)
+    		(r'/welcome', WelcomeHandler), (r'/logout', LogoutHandler), \
+    		(r'/craigslist', CraigsListHandler)], debug=True)
