@@ -66,6 +66,7 @@ class Art(db.Model):
 	title = db.StringProperty(required = True)
 	art = db.TextProperty(required = True)
 	created = db.DateTimeProperty(auto_now_add = True)
+	coordinates = db.GeoPtProperty()
 
 class Post(db.Model):
 	"""
@@ -75,7 +76,30 @@ class Post(db.Model):
 	content = db.TextProperty(required = True)
 	created = db.StringProperty(required = True)
 	createdExact = db.DateTimeProperty(auto_now_add = True)
+
+IP_URL = "http://api.hostip.info/?ip="	
+def getCords(ip):
+	ip = "4.2.2.2"
+	ip = "23.24.209.141"
+	url = IP_URL + ip
+	content = None
+	try:
+		content = urllib2.urlopen(url).read()
+	except:
+		return
 	
+	if content:
+		d = minidom.parseString(content)
+    	coordinates = d.getElementsByTagName("gml:coordinates")
+    	if coordinates and len(coordinates) > 0 and coordinates[0].firstChild.nodeValue:
+        	latLong = coordinates[0].firstChild.nodeValue.split(",")
+        	return db.GeoPt(latLong[1], latLong[0])
+	
+GMAPS_URL = "http://maps.googleapis.com/maps/api/staticmap?size=380x263&sensor=false&"
+def gmapsImg(points):
+	markers = "&".join("markers={0},{1}".format(p.lat, p.lon) for p in points)
+	return GMAPS_URL + markers
+
 class AsciiHandler(Handler):
 	"""
 	AsciiHandler is for handling our main ascii art page. We display old art
@@ -83,9 +107,18 @@ class AsciiHandler(Handler):
 	If the user submits invalid input, we spit out an error.
 	"""
 	def render_front(self, title="", art="", error=""):
-		arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC ")
+		arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC LIMIT 10")
 	
-		self.render("asciifront.html", title=title, art=art, error=error, arts=arts)
+		# Don't do the query multiple times! Store in a list
+		arts = list(arts)
+		
+		points = filter(None, (a.coordinates for a in arts))
+		imageURL = None
+		if points:
+			imageURL = gmapsImg(points)
+	
+		self.render("asciifront.html", title=title, art=art, error=error, arts=arts,
+										imageURL = imageURL)
 		
 	def get(self):
 		self.render_front()
@@ -96,6 +129,10 @@ class AsciiHandler(Handler):
 		
 		if title and art:
 			a = Art(title=title, art=art)
+			coordinates = getCords(self.request.remote_addr)
+			
+			if coordinates:
+				a.coordinates = coordinates
 			a.put()
 			
 			self.render_front(title, art)
@@ -481,7 +518,7 @@ class WelcomeHandler(ThanksHandler):
 
 class CraigsListHandler(Handler):
 	def get(self):
-		#p = urllib2.urlopen("http://sfbay.craigslist.org/apa/index.rss")
+		p = urllib2.urlopen("http://www.craigslist.com")
 		#craigsListXML = p.read()
 		#d = minidom.parseString(craigsListXML)
 		#apartments = d.getElementsByTagName("item")
@@ -490,7 +527,7 @@ class CraigsListHandler(Handler):
 		#url = latestApartments.getElementsByTagName('link')[0].firstChild.wholeText
 		
 		#self.response.out.write("<h1>{0}<br><br>{1}".format(title, url))
-
+		self.response.out.write("craigslist it")
 # Make the app go!
 app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
