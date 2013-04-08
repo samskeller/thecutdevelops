@@ -19,6 +19,7 @@ import webapp2
 import re
 import os
 import jinja2
+import json
 import hashlib
 import hmac
 import random
@@ -183,7 +184,34 @@ class BlogHandler(Handler):
 		webapp2.RequestHandler.initialize(self, *a, **kw)
 		uid = self.readCookie('user_id')
 		self.user = uid and User.by_id(int(uid))
-			
+
+class BlogJson(BlogHandler):
+	def get(self):
+		posts = db.GqlQuery("SELECT * FROM Post ORDER BY createdExact DESC LIMIT 10")
+		
+		self.response.headers['Content-Type'] = 'application/json; charset=UTF-8'
+		
+		jsonList = []
+		
+		for post in posts:
+			jsonList.append({'content' : post.content, 'subject' : post.subject, 
+						'created' : post.created})
+		self.response.out.write(json.dumps(jsonList))
+
+# for json: Content-type application/json; charset=UTF-8
+# list of dictionaries that have content, subject, and created if we can
+class PermalinkJson(BlogHandler):
+	def get(self, postNum=""):
+		if postNum == "":
+			self.response.out.write("Not a real post!")
+		else:
+			postNum = int(postNum)
+		self.response.headers['Content-Type'] = 'application/json; charset=UTF-8'
+		post = Post.get_by_id(int(postNum))		
+		jsonList = [{'content' : post.content, 'subject' : post.subject, 
+						'created' : post.created}]
+		self.response.out.write(json.dumps(jsonList))
+	
 class NewPostHandler(BlogHandler):
 	"""
 	NewPostHandler handlers the form for adding a new post to our blog.
@@ -532,8 +560,9 @@ class CraigsListHandler(Handler):
 app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
     		('/signup', Register), ('/unit3/ascii', AsciiHandler), \
-    		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
+    		('/blog', BlogHandler), ('/newpost', NewPostHandler), \
     		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
     		(r'/cookies', CookieTester), (r'/login', LoginHandler), \
     		(r'/welcome', WelcomeHandler), (r'/logout', LogoutHandler), \
-    		(r'/craigslist', CraigsListHandler)], debug=True)
+    		(r'/craigslist', CraigsListHandler), (r'/blog/(\d+).json', PermalinkJson), \
+    		(r'/blog.json', BlogJson)], debug=True)
