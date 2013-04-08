@@ -226,7 +226,7 @@ class NewPostHandler(BlogHandler):
 		if self.user:		
 			self.render_front()
 		else:
-			self.redirect('/login')
+			self.redirect('/blog/login')
 		
 	def post(self):
 		if not self.user:
@@ -426,7 +426,7 @@ class LoginHandler(BlogHandler):
 class LogoutHandler(BlogHandler):
 	def get(self):
 		self.logout()
-		self.redirect('/signup')
+		self.redirect('/blog/signup')
 	
 def validate_username(username):
 	"""
@@ -530,7 +530,7 @@ class ThanksHandler(BlogHandler):
 		if self.user:
 			self.messageForUser()
 		else:
-			self.redirect('/signup')
+			self.redirect('/blog/signup')
 	
 	def messageForUser(self):
 		self.response.out.write("<h1>thanks, %s!</h1><br><a href=\"blog\">\
@@ -559,10 +559,10 @@ class CraigsListHandler(Handler):
 # Make the app go!
 app = webapp2.WSGIApplication([
     ('/', MainHandler), ('/unit2/rot13', Rot13Handler), ('/thanks', ThanksHandler), \
-    		('/signup', Register), ('/unit3/ascii', AsciiHandler), \
-    		('/blog', BlogHandler), ('/newpost', NewPostHandler), \
+    		('/blog/signup', Register), ('/unit3/ascii', AsciiHandler), \
+    		('/blog', BlogHandler), ('/blog/newpost', NewPostHandler), \
     		(r'/blog/(\d+)', OldPostHandler), (r'/blog/page(\d+)', BlogHandler), \
-    		(r'/cookies', CookieTester), (r'/login', LoginHandler), \
-    		(r'/welcome', WelcomeHandler), (r'/logout', LogoutHandler), \
+    		(r'/cookies', CookieTester), (r'/blog/login', LoginHandler), \
+    		(r'/welcome', WelcomeHandler), (r'/blog/logout', LogoutHandler), \
     		(r'/craigslist', CraigsListHandler), (r'/blog/(\d+).json', PermalinkJson), \
-    		(r'/blog.json', BlogJson)], debug=True)
+    		(r'/blog/.json', BlogJson)], debug=True)
