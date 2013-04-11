@@ -80,6 +80,9 @@ class Post(db.Model):
 
 IP_URL = "http://api.hostip.info/?ip="	
 def getCords(ip):
+	"""
+	Getting some coordinates from some ip using hostip.info
+	"""
 	ip = "4.2.2.2"
 	ip = "23.24.209.141"
 	url = IP_URL + ip
